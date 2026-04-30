@@ -1,18 +1,17 @@
-package com.beatrizgnovais.adapter.output.persistence.entity // O pacote deve seguir a pasta
+package com.beatrizgnovais.adapter.output.persistence.entity
 
 import jakarta.persistence.*
-import java.util.UUID // IMPORTANTE: Use o java.util e não o do hibernate validator
 
 @Entity
 @Table(name = "users")
-class User(
+data class UserEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO) // AUTO funciona melhor com UUID no Postgres
-    val id: UUID? = null,
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long? = null,
 
     @Column(unique = true, nullable = false)
-    var email: String = "",
+    val email: String,
 
     @Column(nullable = false)
-    var password: String = ""
+    val password: String
 )

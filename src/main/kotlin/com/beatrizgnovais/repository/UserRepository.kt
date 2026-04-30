@@ -1,10 +1,9 @@
 package com.beatrizgnovais.repository
 
-import com.beatrizgnovais.adapter.output.persistence.entity.User
+import com.beatrizgnovais.adapter.output.persistence.entity.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
 
-class UserRepository {
-    interface UserRepository : JpaRepository<User, Long> {
-        fun findByEmail(email: String): User?
-    }
+interface UserRepository : JpaRepository<UserEntity, Long> {
+    fun findByEmail(email: String): UserEntity?
+    fun existsByEmail(email: String): Boolean
 }

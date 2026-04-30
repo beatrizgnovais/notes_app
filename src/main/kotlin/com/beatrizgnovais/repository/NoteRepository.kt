@@ -1,12 +1,8 @@
 package com.beatrizgnovais.repository
 
-import com.beatrizgnovais.adapter.output.persistence.entity.Note
-import com.beatrizgnovais.adapter.output.persistence.entity.User
+import com.beatrizgnovais.adapter.output.persistence.entity.NoteEntity
 import org.springframework.data.jpa.repository.JpaRepository
 
-
-class NoteRepository {
-    interface NoteRepository : JpaRepository<Note, Long> {
-        fun findAllByUser(user: User): List<Note>
-    }
+interface NoteRepository : JpaRepository<NoteEntity, Long> {
+    fun findAllByUserId(userId: Long): List<NoteEntity>
 }
