@@ -6,10 +6,10 @@ import jakarta.validation.constraints.Size
 
 data class UpdateUserRequest(
     @field:Email(message = "E-mail invalido.")
-    @field:NotBlank(message = "E-mail eh obrigatorio.")
+    @field:NotBlank(message = "E-mail é obrigatorio.")
     val email: String,
 
-    @field:NotBlank(message = "Senha eh obrigatoria.")
+    @field:NotBlank(message = "Senha é obrigatoria.")
     @field:Size(min = 6, message = "Senha deve ter ao menos 6 caracteres.")
     val password: String
 )

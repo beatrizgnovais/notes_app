@@ -13,8 +13,14 @@ class NotePersistenceAdapter(
 
     override fun save(note: Note): Note = noteRepository.save(note.toEntity()).toDomain()
 
+    override fun findAll(): List<Note> = noteRepository.findAll().map { it.toDomain() }
+
+    override fun findById(id: Long): Note? = noteRepository.findById(id).orElse(null)?.toDomain()
+
     override fun findByUserId(userId: Long): List<Note> =
         noteRepository.findAllByUserId(userId).map { it.toDomain() }
+
+    override fun update(note: Note): Note = noteRepository.save(note.toEntity()).toDomain()
 
     override fun deleteById(noteId: Long) = noteRepository.deleteById(noteId)
 

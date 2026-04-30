@@ -9,7 +9,13 @@ interface NoteRepositoryPort {
 
     fun save(note: Note): Note
 
+    fun findAll(): List<Note>
+
+    fun findById(id: Long): Note?
+
     fun findByUserId(userId: Long): List<Note>
+
+    fun update(note: Note): Note
 
     fun deleteById(noteId: Long)
 }
