@@ -26,8 +26,6 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_SECURITY_USER_NAME: user
-      SPRING_SECURITY_USER_PASSWORD: 123456
       DB_URL: jdbc:postgresql://db:5432/notes_db
       DB_USER: postgres
       DB_PASSWORD: minhasenha

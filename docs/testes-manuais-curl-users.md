@@ -10,9 +10,7 @@ Observacao:
 
 - Se estiver usando Docker Compose deste projeto, a API ja sobe mapeada em `8080`.
 - O banco continua em `5432` para conexao via DBeaver.
-- Com Spring Security ativo, use Basic Auth em todos os endpoints:
-  - Usuario: `user`
-  - Senha: `123456`
+- Autenticacao foi removida para facilitar os testes manuais de CRUD.
 
 Subir ambiente com Docker:
 
@@ -24,7 +22,6 @@ docker compose up -d --build
 
 ```bash
 curl -i -X POST http://localhost:8080/users \
-  -u user:123456 \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"ana@example.com\",\"password\":\"123456\"}"
 ```
@@ -37,7 +34,7 @@ Esperado:
 ## 3) List (GET /users)
 
 ```bash
-curl -i -u user:123456 http://localhost:8080/users
+curl -i http://localhost:8080/users
 ```
 
 Esperado:
@@ -48,7 +45,7 @@ Esperado:
 ## 4) Read por id (GET /users/{id})
 
 ```bash
-curl -i -u user:123456 http://localhost:8080/users/1
+curl -i http://localhost:8080/users/1
 ```
 
 Esperado:
@@ -60,7 +57,6 @@ Esperado:
 
 ```bash
 curl -i -X PUT http://localhost:8080/users/1 \
-  -u user:123456 \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"ana.nova@example.com\",\"password\":\"abcdef\"}"
 ```
@@ -73,7 +69,7 @@ Esperado:
 ## 6) Delete (DELETE /users/{id})
 
 ```bash
-curl -i -u user:123456 -X DELETE http://localhost:8080/users/1
+curl -i -X DELETE http://localhost:8080/users/1
 ```
 
 Esperado:
@@ -96,7 +92,6 @@ Esperado:
 
 ```bash
 curl -i -X POST http://localhost:8080/users \
-  -u user:123456 \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"invalido\",\"password\":\"123\"}"
 ```
@@ -110,7 +105,6 @@ Esperado:
 
 ```bash
 curl -i -X PUT http://localhost:8080/users/9999 \
-  -u user:123456 \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"x@example.com\",\"password\":\"123456\"}"
 ```
