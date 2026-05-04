@@ -13,8 +13,6 @@ interface NoteRepositoryPort {
 
     fun findById(id: Long): Note?
 
-    fun findByUserId(userId: Long): List<Note>
-
     fun update(note: Note): Note
 
     fun deleteById(noteId: Long)

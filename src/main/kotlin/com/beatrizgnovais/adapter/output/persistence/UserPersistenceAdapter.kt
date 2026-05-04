@@ -3,10 +3,10 @@ package com.beatrizgnovais.adapter.output.persistence
 import com.beatrizgnovais.adapter.output.persistence.entity.UserEntity
 import com.beatrizgnovais.application.port.output.UserRepositoryPort
 import com.beatrizgnovais.domain.model.User
-import com.beatrizgnovais.repository.UserRepository
-import org.springframework.stereotype.Component
+import com.beatrizgnovais.adapter.output.persistence.repository.UserRepository
+import org.springframework.stereotype.Repository
 
-@Component
+@Repository
 class UserPersistenceAdapter(
     private val userRepository: UserRepository
 ) : UserRepositoryPort {

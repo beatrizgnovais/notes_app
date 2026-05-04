@@ -1,4 +1,4 @@
-package com.beatrizgnovais.repository
+package com.beatrizgnovais.adapter.output.persistence.repository
 
 import com.beatrizgnovais.adapter.output.persistence.entity.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository

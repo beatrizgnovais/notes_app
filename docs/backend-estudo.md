@@ -1,174 +1,227 @@
 # Guia de estudo backend do projeto
 
-## 1) O que foi implementado agora
+Documentação complementar:
 
-Foi implementado o LCRUD de `users` com:
+- **[README](../README.md)** — como rodar, variáveis de ambiente, endpoints resumidos.
+- **[arquitetura.md](arquitetura.md)** — explicação profunda da arquitetura hexagonal, fluxogramas e walkthrough `POST /notes` ponta a ponta.
+- **[testes-manuais-curl.md](testes-manuais-curl.md)** — curls e PowerShell para todos os cenários.
 
-- `POST /users` para criar
-- `GET /users` para listar
-- `GET /users/{id}` para buscar por id
-- `PUT /users/{id}` para atualizar
-- `DELETE /users/{id}` para remover
+---
 
-Camadas usadas:
+## 1) O que foi implementado
+
+### LCRUD de `users`
+
+- `POST /users` — criar
+- `GET /users` — listar
+- `GET /users/{id}` — buscar por id
+- `PUT /users/{id}` — atualizar
+- `DELETE /users/{id}` — remover
+
+Camadas (users):
 
 - Entrada HTTP: `adapter/input/web/controller/UserController.kt`
-- Aplicacao (casos de uso): `application/port/input/UserUseCase.kt`
-- Regras de orquestracao: `application/service/UserService.kt`
-- Porta de persistencia: `application/port/output/UserRepositoryPort.kt`
-- Adapter de persistencia: `adapter/output/persistence/UserPersistenceAdapter.kt`
-- Repositorio JPA: `repository/UserRepository.kt`
+- Aplicação (casos de uso): `application/port/input/UserUseCase.kt`
+- Regras de orquestração: `application/service/UserService.kt`
+- Porta de persistência: `application/port/output/UserRepositoryPort.kt`
+- Adapter de persistência: `adapter/output/persistence/UserPersistenceAdapter.kt`
+- Repositório JPA: `adapter/output/persistence/repository/UserRepository.kt`
+
+### LCRUD de `notes`
+
+- `POST /notes` — criar (body inclui `userId`; o usuário precisa existir)
+- `GET /notes` — listar
+- `GET /notes/{id}` — buscar por id
+- `PUT /notes/{id}` — atualizar título/conteúdo
+- `DELETE /notes/{id}` — remover
+
+Camadas (notes):
+
+- Entrada HTTP: `adapter/input/web/controller/NoteController.kt`
+- Aplicação: `application/port/input/NoteUseCase.kt`
+- Regras de orquestração: `application/service/NoteService.kt`
+- Portas de saída: `application/port/output/NoteRepositoryPort.kt` e `UserRepositoryPort.kt` (validação de `userId` na criação)
+- Adapter de persistência: `adapter/output/persistence/NotePersistenceAdapter.kt`
+- Repositório JPA: `adapter/output/persistence/repository/NoteRepository.kt`
+
+---
 
 ## 2) Hexagonal e Clean Architecture no contexto do projeto
 
-Na pratica, as duas abordagens aqui convergem para o mesmo objetivo:
+Na prática, as duas abordagens aqui convergem para o mesmo objetivo:
 
-- Dominio e aplicacao nao dependem do framework web.
-- O controller conhece o caso de uso, nao conhece SQL/JPA diretamente.
-- Persistencia entra como detalhe de infraestrutura via porta (`UserRepositoryPort`).
+- Domínio e aplicação não dependem do framework web.
+- O controller conhece o caso de uso, não conhece SQL/JPA diretamente.
+- Persistência entra como detalhe de infraestrutura via portas (`UserRepositoryPort`, `NoteRepositoryPort`).
 
 Fluxo:
 
-1. Requisicao HTTP entra no controller.
+1. Requisição HTTP entra no controller.
 2. Controller converte DTO em command.
-3. Use case/service aplica regra de negocio.
-4. Service usa porta de saida.
+3. Use case/service aplica regra de negócio.
+4. Service usa porta de saída.
 5. Adapter da porta chama JPA/Postgres.
 6. Resultado volta para o controller como resposta HTTP.
 
-Isso facilita trocar banco/framework sem quebrar regra de negocio central.
+Isso facilita trocar banco/framework sem quebrar regra de negócio central.
+
+Para diagramas, sequência completa de uma requisição e comparação Domain/DTO/Entity/Command, leia **[arquitetura.md](arquitetura.md)**.
+
+---
 
 ## 3) HTTP methods e LCRUD
 
-- `POST` cria recurso novo.
-  - Retorno esperado: `201 Created`.
-- `GET` consulta recurso.
-  - `200 OK` para sucesso.
-- `PUT` atualiza recurso existente.
-  - `200 OK` com recurso atualizado.
-- `DELETE` remove recurso.
-  - `204 No Content`.
+- `POST` cria recurso novo → retorno esperado: `201 Created`.
+- `GET` consulta recurso → `200 OK`.
+- `PUT` atualiza recurso existente → `200 OK` com recurso atualizado.
+- `DELETE` remove recurso → `204 No Content`.
 
 Erros esperados no projeto:
 
-- `400 Bad Request`: validacao de entrada falhou.
-- `404 Not Found`: id inexistente.
-- `409 Conflict`: e-mail duplicado.
+- `400 Bad Request`: validação de entrada falhou.
+- `404 Not Found`: id inexistente ou (em `POST /notes`) `userId` inexistente.
+- `409 Conflict`: e-mail duplicado em usuários.
+
+---
 
 ## 4) API, DTO e contrato
+
+### Users
 
 DTOs de entrada:
 
 - `CreateUserRequest` (email, password)
 - `UpdateUserRequest` (email, password)
 
-DTO de saida:
+DTO de saída:
 
-- `UserResponse` (id, email)
+- `UserResponse` (id, email) — senha não é exposta.
+
+### Notes
+
+DTOs de entrada:
+
+- `CreateNoteRequest` (title, content, userId)
+- `UpdateNoteRequest` (title, content)
+
+DTO de saída:
+
+- `NoteResponse` (id, title, content, userId)
 
 Por que DTO?
 
 - Evita vazar entidade interna.
-- Mantem contrato da API estavel.
-- Facilita evolucao de dominio sem quebrar cliente.
+- Mantém contrato da API estável.
+- Facilita evolução de domínio sem quebrar cliente.
 
-## 5) Validacao e tratamento de erros
+---
 
-Foi implementado:
+## 5) Validação e tratamento de erros
 
-- Validacao com Jakarta Validation nos DTOs (`@Email`, `@NotBlank`, `@Size`).
-- Handler global em `ApiExceptionHandler` para padronizar respostas de erro.
+Implementado:
 
-Isso evita if/else repetido em controller e padroniza payload de erro.
+- Validação com Jakarta Validation nos DTOs (`@Email`, `@NotBlank`, `@Size`, `@NotNull` onde aplicável).
+- Handler global em `ApiExceptionHandler` para padronizar respostas de erro (`400`, `404`, `409`).
 
-## 6) Migration: como pensar e como evoluir este projeto
+Isso evita `if/else` repetido em controller e padroniza payload de erro.
+
+---
+
+## 6) Segurança (estado atual)
+
+Em `config/SecurityConfig.kt`:
+
+- CSRF desabilitado.
+- `authorizeHttpRequests { anyRequest().permitAll() }` — **todas as rotas públicas** para facilitar estudo e testes manuais de CRUD.
+- CORS liberado para `http://localhost:5173` e `http://localhost:3000`.
+
+O projeto já declara `jjwt-api` no Gradle, mas **JWT ainda não está ligado** ao fluxo HTTP — próximo passo natural é cadastro/login e proteção de rotas. Detalhes em [arquitetura.md](arquitetura.md) seção “Próximas evoluções”.
+
+---
+
+## 7) Migration: como pensar e como evoluir este projeto
 
 Estado atual:
 
 - `spring.jpa.hibernate.ddl-auto=update` no `application.properties`.
 
-Isso ajuda no inicio, mas para ambiente real o ideal e migration versionada.
+Isso ajuda no início, mas para ambiente real o ideal é migration versionada.
 
-Recomendacao de evolucao:
+Recomendação de evolução:
 
 1. Escolher ferramenta: Flyway ou Liquibase.
 2. Mudar `ddl-auto` para `validate` (ou `none`) em ambiente produtivo.
 3. Criar scripts versionados (`V1__create_users.sql`, etc).
-4. Rodar migration no startup da aplicacao.
+4. Rodar migration no startup da aplicação.
 
-Beneficios:
+Benefícios:
 
-- Historico de schema.
+- Histórico de schema.
 - Reprodutibilidade em todos ambientes.
 - Rollforward mais seguro.
 
-## 7) Docker: como colocar API + banco juntos
+---
+
+## 8) Docker: API + banco juntos
 
 Conceito:
 
-- Um container para API Spring.
-- Um container para Postgres.
-- Orquestracao por `docker compose`.
+- Um container para API Spring (`api` no `docker-compose.yml`).
+- Um container para Postgres (`db`).
+- Orquestração por `docker compose`.
 
-Passos sugeridos:
-
-1. Criar `Dockerfile` para a API (build do jar e runtime Java).
-2. Criar `docker-compose.yml` com servicos `app` e `db`.
-3. Configurar variaveis de ambiente para datasource.
-4. Subir com `docker compose up -d`.
-
-Depois disso, os mesmos curls funcionam mudando apenas a URL base.
-
-## 8) Sequencia recomendada de estudo
-
-1. Rodar projeto local e executar curls de LCRUD.
-2. Ler `UserController` e `UserService` lado a lado.
-3. Seguir o mapeamento `UserPersistenceAdapter` ate o `UserRepository`.
-4. Implementar migration com Flyway como proximo desafio.
-5. Adicionar auth JWT no fluxo (cadastro/login/protecao de rotas).
-
-## 9) Portas 5432 vs 8080 (o ponto mais importante)
-
-- `5432` e a porta padrao do Postgres (banco de dados).
-- `8080` e a porta da API HTTP (Spring Boot).
-
-Quem usa cada uma:
-
-- DBeaver usa `5432` para falar direto com o banco.
-- API Client (Postman/Insomnia/curl) usa `8080` para falar com a API.
-
-Fluxo real:
-
-1. Voce chama `http://localhost:8080/users` no API Client.
-2. A API recebe e internamente abre conexao JDBC no banco (`localhost:5432` fora do Docker, ou `db:5432` dentro do Docker network).
-3. O banco responde e a API devolve JSON.
-
-Conclusao:
-
-- Nao e `5432` ou `8080`.
-- Voce normalmente usa as duas ao mesmo tempo, cada uma com funcao diferente.
-
-## 10) Como rodar com Docker neste projeto
-
-Arquivos criados:
+Arquivos:
 
 - `Dockerfile`
 - `docker-compose.yml`
 - `.dockerignore`
 - `application-docker.properties`
 
+Depois de subir, os mesmos testes funcionam na URL base `http://localhost:8080`. Ver [README](../README.md).
+
+---
+
+## 9) Sequência recomendada de estudo
+
+1. Rodar o projeto (Docker ou local) e executar os testes em [testes-manuais-curl.md](testes-manuais-curl.md).
+2. Ler `UserController` e `UserService` lado a lado; depois `NoteController` e `NoteService`.
+3. Seguir o mapeamento `UserPersistenceAdapter` / `NotePersistenceAdapter` até os `JpaRepository`.
+4. Ler **[arquitetura.md](arquitetura.md)** — walkthrough `POST /notes` e diagramas.
+5. Implementar Flyway como próximo desafio de infraestrutura.
+6. (Opcional) Integrar JWT e substituir `permitAll()` por regras por rota.
+
+---
+
+## 10) Portas 5432 vs 8080 (o ponto mais importante)
+
+- `5432` é a porta padrão do Postgres (banco de dados).
+- `8080` é a porta da API HTTP (Spring Boot).
+
+Quem usa cada uma:
+
+- DBeaver usa `5432` para falar direto com o banco.
+- Postman/Insomnia/curl/PowerShell usa `8080` para falar com a API.
+
+Fluxo real:
+
+1. Você chama `http://localhost:8080/users` ou `/notes` no cliente HTTP.
+2. A API recebe e internamente abre conexão JDBC (`localhost:5432` fora do Docker, ou `db:5432` dentro da rede do Compose).
+3. O banco responde e a API devolve JSON.
+
+Conclusão: normalmente você usa **as duas portas ao mesmo tempo**, cada uma com função diferente.
+
+---
+
+## 11) Como rodar com Docker neste projeto
+
 Comandos:
 
-1. Subir tudo:
-   - `docker compose up -d --build`
-2. Ver logs da API:
-   - `docker compose logs -f api`
-3. Parar:
-   - `docker compose down`
-4. Parar e apagar volume do banco (reset total):
-   - `docker compose down -v`
+1. Subir tudo: `docker compose up -d --build`
+2. Ver logs da API: `docker compose logs -f api`
+3. Parar: `docker compose down`
+4. Parar e apagar volume do banco (reset total): `docker compose down -v`
 
-Conexoes:
+Conexões:
 
 - API: `http://localhost:8080`
 - Postgres no DBeaver:
