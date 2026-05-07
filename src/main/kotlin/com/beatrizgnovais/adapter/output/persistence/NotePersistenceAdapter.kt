@@ -5,6 +5,8 @@ import com.beatrizgnovais.application.port.output.NoteRepositoryPort
 import com.beatrizgnovais.domain.model.Note
 import com.beatrizgnovais.adapter.output.persistence.repository.NoteRepository
 import org.springframework.stereotype.Repository
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 @Repository
 class NotePersistenceAdapter(
@@ -25,13 +27,15 @@ class NotePersistenceAdapter(
         id = id,
         title = title,
         content = content,
-        userId = userId
+        userId = userId,
+        lastUpdate = OffsetDateTime.now(ZoneOffset.UTC)
     )
 
     private fun NoteEntity.toDomain(): Note = Note(
         id = id,
         title = title,
         content = content,
-        userId = userId
+        userId = userId,
+        lastUpdate = lastUpdate
     )
 }

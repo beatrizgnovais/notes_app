@@ -1,12 +1,11 @@
 package com.beatrizgnovais.domain.model
 
 /**
- * Modelo de domínio da nota.
- * Representa o conceito de negócio.
+ * Modelo de domínio que representa um usuário.
+ * Não depende de banco, Spring ou frameworks.
  */
-data class Note(
+data class User(
     val id: Long?,
-    val title: String,
-    val content: String,
-    val userId: Long
+    val email: String,
+    val password: String
 )

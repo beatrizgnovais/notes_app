@@ -1,11 +1,15 @@
 package com.beatrizgnovais.domain.model
 
+import java.time.OffsetDateTime
+
 /**
- * Modelo de domínio que representa um usuário.
- * Não depende de banco, Spring ou frameworks.
+ * Modelo de domínio da nota.
+ * Representa o conceito de negócio.
  */
-data class User(
+data class Note(
     val id: Long?,
-    val email: String,
-    val password: String
+    val title: String,
+    val content: String,
+    val userId: Long,
+    val lastUpdate: OffsetDateTime? = null
 )

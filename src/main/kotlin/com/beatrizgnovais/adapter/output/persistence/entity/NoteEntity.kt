@@ -1,6 +1,7 @@
 package com.beatrizgnovais.adapter.output.persistence.entity
 
 import jakarta.persistence.*
+import java.time.OffsetDateTime
 
 
 @Entity
@@ -15,5 +16,8 @@ data class NoteEntity(
 
     val content: String,
 
-    val userId: Long
+    val userId: Long,
+
+    @Column(name = "last_update", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    val lastUpdate: OffsetDateTime
 )

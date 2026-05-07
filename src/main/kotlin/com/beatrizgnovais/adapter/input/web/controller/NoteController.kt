@@ -10,6 +10,8 @@ import com.beatrizgnovais.domain.model.Note
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 @RestController
 @RequestMapping("/notes")
@@ -61,6 +63,14 @@ class NoteController(
         id = requireNotNull(id) { "Nota retornada sem id." },
         title = title,
         content = content,
-        userId = userId
+        userId = userId,
+        lastUpdate = lastUpdate
+            ?.withOffsetSameInstant(ZoneOffset.UTC)
+            ?.format(LAST_UPDATE_FORMATTER)
     )
+
+    companion object {
+        private val LAST_UPDATE_FORMATTER: DateTimeFormatter =
+            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss 'UTC'")
+    }
 }
