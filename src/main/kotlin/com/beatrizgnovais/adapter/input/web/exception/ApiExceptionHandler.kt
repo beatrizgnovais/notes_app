@@ -1,5 +1,6 @@
 package com.beatrizgnovais.adapter.input.web.exception
 
+import com.beatrizgnovais.application.exception.BadRequestException
 import com.beatrizgnovais.application.exception.ConflictException
 import com.beatrizgnovais.application.exception.ResourceNotFoundException
 import org.springframework.http.HttpStatus
@@ -10,6 +11,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class ApiExceptionHandler {
+
+    @ExceptionHandler(BadRequestException::class)
+    fun handleBadRequest(ex: BadRequestException): ResponseEntity<ApiErrorResponse> =
+        ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(ApiErrorResponse(message = ex.message ?: "Requisicao invalida."))
 
     @ExceptionHandler(ResourceNotFoundException::class)
     fun handleNotFound(ex: ResourceNotFoundException): ResponseEntity<ApiErrorResponse> =

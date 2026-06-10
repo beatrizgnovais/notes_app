@@ -4,6 +4,7 @@ import com.beatrizgnovais.adapter.input.web.dto.CreateNoteRequest
 import com.beatrizgnovais.adapter.input.web.dto.NoteResponse
 import com.beatrizgnovais.adapter.input.web.dto.UpdateNoteRequest
 import com.beatrizgnovais.application.command.CreateNoteCommand
+import com.beatrizgnovais.application.command.CreateNoteFromPdfCommand
 import com.beatrizgnovais.application.command.UpdateNoteCommand
 import com.beatrizgnovais.application.port.input.NoteUseCase
 import com.beatrizgnovais.application.port.output.PdfGeneratorPort
@@ -19,6 +20,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
@@ -92,6 +94,30 @@ class NoteController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@PathVariable id: Long) {
         noteUseCase.delete(id)
+    }
+
+    @Operation(
+        summary = "Importar PDF como nota",
+        description = "Recebe um arquivo PDF, extrai o texto e cria uma nova nota com o conteudo extraido"
+    )
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "201", description = "Nota criada com sucesso a partir do PDF"),
+        ApiResponse(responseCode = "400", description = "Arquivo invalido ou PDF sem texto legivel"),
+        ApiResponse(responseCode = "404", description = "Usuario nao encontrado")
+    ])
+    @PostMapping("/from-pdf", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createFromPdf(
+        @RequestParam file: MultipartFile,
+        @RequestParam userId: Long
+    ): NoteResponse {
+        val created = noteUseCase.createFromPdf(
+            CreateNoteFromPdfCommand(
+                pdfBytes = file.bytes,
+                userId = userId
+            )
+        )
+        return created.toResponse()
     }
 
     @Operation(

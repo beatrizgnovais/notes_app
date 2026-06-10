@@ -1,10 +1,12 @@
 package com.beatrizgnovais.application.service
 
 import com.beatrizgnovais.application.command.CreateNoteCommand
+import com.beatrizgnovais.application.command.CreateNoteFromPdfCommand
 import com.beatrizgnovais.application.command.UpdateNoteCommand
 import com.beatrizgnovais.application.exception.ResourceNotFoundException
 import com.beatrizgnovais.application.port.input.NoteUseCase
 import com.beatrizgnovais.application.port.output.NoteRepositoryPort
+import com.beatrizgnovais.application.port.output.PdfParserPort
 import com.beatrizgnovais.application.port.output.UserRepositoryPort
 import com.beatrizgnovais.domain.model.Note
 import org.springframework.stereotype.Service
@@ -12,7 +14,8 @@ import org.springframework.stereotype.Service
 @Service
 class NoteService(
     private val noteRepositoryPort: NoteRepositoryPort,
-    private val userRepositoryPort: UserRepositoryPort
+    private val userRepositoryPort: UserRepositoryPort,
+    private val pdfParserPort: PdfParserPort
 ) : NoteUseCase {
 
     override fun create(command: CreateNoteCommand): Note {
@@ -23,6 +26,21 @@ class NoteService(
                 id = null,
                 title = command.title,
                 content = command.content,
+                userId = command.userId
+            )
+        )
+    }
+
+    override fun createFromPdf(command: CreateNoteFromPdfCommand): Note {
+        ensureUserExists(command.userId)
+
+        val parsed = pdfParserPort.parse(command.pdfBytes)
+
+        return noteRepositoryPort.save(
+            Note(
+                id = null,
+                title = parsed.title,
+                content = parsed.content,
                 userId = command.userId
             )
         )
