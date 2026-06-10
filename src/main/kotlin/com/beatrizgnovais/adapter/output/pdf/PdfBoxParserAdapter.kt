@@ -3,16 +3,16 @@ package com.beatrizgnovais.adapter.output.pdf
 import com.beatrizgnovais.application.command.ParsedPdfContent
 import com.beatrizgnovais.application.exception.BadRequestException
 import com.beatrizgnovais.application.port.output.PdfParserPort
+import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import org.springframework.stereotype.Component
-import java.io.ByteArrayInputStream
 
 @Component
 class PdfBoxParserAdapter : PdfParserPort {
 
     override fun parse(pdfBytes: ByteArray): ParsedPdfContent {
-        val document = PDDocument.load(ByteArrayInputStream(pdfBytes))
+        val document = Loader.loadPDF(pdfBytes)
 
         document.use { pdf ->
             val stripper = PDFTextStripper()
