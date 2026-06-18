@@ -7,6 +7,7 @@ import com.beatrizgnovais.application.command.CreateNoteCommand
 import com.beatrizgnovais.application.command.CreateNoteFromPdfCommand
 import com.beatrizgnovais.application.command.UpdateNoteCommand
 import com.beatrizgnovais.application.port.input.NoteUseCase
+import com.beatrizgnovais.application.port.output.PdfCachePort
 import com.beatrizgnovais.application.port.output.PdfGeneratorPort
 import com.beatrizgnovais.domain.model.Note
 import io.swagger.v3.oas.annotations.Operation
@@ -29,7 +30,8 @@ import java.time.format.DateTimeFormatter
 @RequestMapping("/notes")
 class NoteController(
     private val noteUseCase: NoteUseCase,
-    private val pdfGeneratorPort: PdfGeneratorPort
+    private val pdfGeneratorPort: PdfGeneratorPort,
+    private val pdfCachePort: PdfCachePort
 ) {
 
     @Operation(summary = "Criar nota", description = "Cria uma nova nota vinculada a um usuario existente")
@@ -135,7 +137,9 @@ class NoteController(
     @GetMapping("/{id}/pdf")
     fun downloadPdf(@PathVariable id: Long): ResponseEntity<ByteArray> {
         val note = noteUseCase.getById(id)
-        val pdfBytes = pdfGeneratorPort.generateNotePdf(note)
+
+        val pdfBytes = pdfCachePort.get(id)
+            ?: pdfGeneratorPort.generateNotePdf(note).also { pdfCachePort.set(id, it) }
 
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"nota-${id}.pdf\"")
